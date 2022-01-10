@@ -37,7 +37,6 @@ public class CoverView extends View {
     public CoverView(Context context) {
         super(context);
         DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
-
         width = displayMetrics.widthPixels;
         height = displayMetrics.heightPixels;
         density = width / 480;
@@ -46,7 +45,6 @@ public class CoverView extends View {
         face_paint.setStyle(Paint.Style.STROKE);
         face_paint.setStrokeWidth(2);
         face_paint.setTextSize(50);
-
         eye_paint = new Paint();
         eye_paint.setColor(Color.WHITE);
         eye_paint.setStyle(Paint.Style.STROKE);
@@ -54,11 +52,9 @@ public class CoverView extends View {
         eye_paint.setTextSize(50);
     }
 
-
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-
         if (find) {
             if (isFace) {
                 face_paint.setColor(Color.GREEN);
@@ -81,7 +77,6 @@ public class CoverView extends View {
         }
     }
 
-
     public void irisAccepted() {
         isIris = true;
     }
@@ -99,7 +94,6 @@ public class CoverView extends View {
         face = null;
     }
 
-
     public void showCover(FaceDetector.Face[] f, Bitmap b) {
         find = true;
         bitmap = b;
@@ -112,14 +106,10 @@ public class CoverView extends View {
         eyesDistance = face.eyesDistance();
         large_EyesDistance = eyesDistance * density * 1.25F;
         eyesDistance = eyesDistance * 1.25F;
-        cut_right = new Rect(0,0,180,80);
-        cut_left = new Rect(0,0,180,80);
-        //cut_left = new Rect(mid.x - 170, mid.y - 40, mid.x - 10, mid.y + 40);
-       // to_left = new Rect(0, (int) (height - width / 4), (int) width / 2, (int) height);
-        to_left = new Rect(0, (int) (height - width / 6), (int) width / 3, (int) height);
-        //cut_right = new Rect(mid.x + 10, mid.y - 40, mid.x + 170, mid.y + 40);
-//        to_right = new Rect((int) width / 2, (int) (height - width / 4), (int) width, (int) height);
-        to_right = new Rect((int) width *2/3, (int) (height - width / 6), (int) width, (int) height);
+        cut_right = new Rect(0, 0, 180, 80);
+        cut_left = new Rect(0, 0, 180, 80);
+        to_left = new Rect(0, (int) (height - width / 4), (int) width / 2, (int) height);
+        to_right = new Rect((int) width / 2, (int) (height - width / 4), (int) width, (int) height);
     }
 
     public boolean shoot() {
@@ -129,5 +119,4 @@ public class CoverView extends View {
             return true;
         } else return false;
     }
-
 }

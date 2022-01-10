@@ -52,24 +52,19 @@ public class MainActivity extends AppCompatActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON, WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setTheme(android.R.style.Theme_Light_NoTitleBar_Fullscreen);
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_main);
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.hide();
         }
-
         View rootView = this.getWindow().getDecorView();
         addCover(rootView);
-
         ImageButton add = findViewById(R.id.addButton);
         add.setOnClickListener(l -> {
-          if(!coverView.shoot())
-          {
-              Toast.makeText(this, "摄取失败，请在识别成功后进行摄取", Toast.LENGTH_SHORT).show();
-          }
+            if (!coverView.shoot()) {
+                Toast.makeText(this, "摄取失败，请在识别成功后进行摄取", Toast.LENGTH_SHORT).show();
+            }
         });
-
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) ==
                 PackageManager.PERMISSION_GRANTED) {
             initPreview();
@@ -78,9 +73,7 @@ public class MainActivity extends AppCompatActivity {
                     new String[]{Manifest.permission.CAMERA},
                     REQUEST_CODE);
         }
-
     }
-
 
     void initPreview() {
         cameraProviderFuture = ProcessCameraProvider.getInstance(this);
@@ -94,7 +87,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }, ContextCompat.getMainExecutor(this));
     }
-
 
     void bindPreview(@NonNull ProcessCameraProvider cameraProvider) {
         preview = new Preview.Builder().build();
@@ -117,7 +109,6 @@ public class MainActivity extends AppCompatActivity {
                     bitmap = createBitmap(image);
                     //check face
                     FaceDetector face_detector = new FaceDetector(bitmap.getWidth(), bitmap.getHeight(), 1);
-                    // Log.i("size", "width:" + bitmap.getWidth() + " height:" + bitmap.getHeight());
                     FaceDetector.Face[] faces = new FaceDetector.Face[1];
                     int face_count = face_detector.findFaces(bitmap, faces);
                     if (face_count > 0) {
@@ -138,15 +129,19 @@ public class MainActivity extends AppCompatActivity {
                 }
         );
         cameraProvider.bindToLifecycle(this, cameraSelector, imageAnalysis, preview);
-
     }
 
-
+    /**
+     * add coverView
+     */
     void addCover(View view) {
         coverView = new CoverView(this);
         ((FrameLayout) view).addView(coverView);
     }
 
+    /**
+     * faceDetector needs bitmap_565, convert the image to bitmap
+     */
     private Bitmap createBitmap(Image image) {
         assert image != null;
         Image.Plane[] planes = image.getPlanes();
@@ -186,7 +181,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_CODE) {// If request is cancelled, the result arrays are empty.
+        if (requestCode == REQUEST_CODE) {
             if (grantResults.length > 0 &&
                     grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 initPreview();
@@ -195,6 +190,4 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
-
 }
