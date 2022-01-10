@@ -2,7 +2,6 @@ package com.example.lock;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -11,9 +10,7 @@ import android.graphics.PointF;
 import android.graphics.Rect;
 import android.media.FaceDetector;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.View;
-import android.widget.Toast;
 
 public class CoverView extends View {
     private final Paint face_paint;
