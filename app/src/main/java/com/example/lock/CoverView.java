@@ -106,16 +106,16 @@ public class CoverView extends View {
         eyesDistance = face.eyesDistance();
         large_EyesDistance = eyesDistance * density * 1.25F;
         eyesDistance = eyesDistance * 1.25F;
-        cut_right = new Rect(0, 0, 180, 80);
-        cut_left = new Rect(0, 0, 180, 80);
+        cut_right = new Rect(0, 0, 180, 90);
+        cut_left = new Rect(0, 0, 180, 90);
         to_left = new Rect(0, (int) (height - width / 4), (int) width / 2, (int) height);
         to_right = new Rect((int) width / 2, (int) (height - width / 4), (int) width, (int) height);
     }
 
     public boolean shoot() {
         if (eyesDistance > 180 && isFace && isIris) {
-            bm_left = Bitmap.createBitmap(bitmap, mid.x - 170, mid.y - 40, 180, 80);
-            bm_right = Bitmap.createBitmap(bitmap, mid.x + 10, mid.y - 40, 180, 80);
+            bm_left = Bitmap.createBitmap(bitmap, mid.x - 180, mid.y - 45, 180, 90);
+            bm_right = Bitmap.createBitmap(bitmap, mid.x, mid.y - 45, 180, 90);
             return true;
         } else return false;
     }
