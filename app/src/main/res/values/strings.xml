@@ -2,4 +2,9 @@
     <string name="app_name">Lock</string>
     <string name="flip_the_camera">flip the camera</string>
     <string name="add_inf">add inf</string>
+    <string name="str_pass">通过</string>
+    <string name="str_set_name">输入设备名称</string>
+    <string name="str_cancel">取消</string>
+    <string name="str_confirm">确认</string>
+    <string name="str_startUpload">登入管理员身份以启用录入</string>
 </resources>
