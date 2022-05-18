@@ -62,13 +62,13 @@ public class MyUtils {
         byte[] imageBytes = out.toByteArray();
         Bitmap metaBitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
         metaBitmap = rotateBitmap(metaBitmap);
-        //metaBitmap = flipBitmap(metaBitmap);
+        metaBitmap = flipBitmap(metaBitmap);
         return metaBitmap.copy(Bitmap.Config.RGB_565, true);
     }
 
     public static Bitmap rotateBitmap(Bitmap bitmap) {
         Matrix matrix_rotate = new Matrix();
-        matrix_rotate.postRotate(90);
+        matrix_rotate.postRotate(-90);
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix_rotate, true);
     }
 
@@ -90,8 +90,8 @@ public class MyUtils {
         imwrite("/sdcard/DCIM/Camera/laplacian.jpg", laplacianDstImage);
         Mat stdDev = new Mat();
         meanStdDev(laplacianDstImage, new Mat(), stdDev);
-        System.out.println(stdDev.createIndexer().getDouble());
-        return true;
+        double value = stdDev.createIndexer().getDouble();
+        return value > 20.0;
     }
 
     public static void saveBitmap(Bitmap faceBitmap, int pid) throws IOException {

@@ -84,6 +84,7 @@ public class CoverView extends View {
     public void faceAccepted() {
         isFace = true;
     }
+
     public boolean allAccepted() {
         return isFace && isIris;
     }

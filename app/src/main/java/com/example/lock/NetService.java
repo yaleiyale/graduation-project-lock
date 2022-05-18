@@ -27,8 +27,7 @@ public interface NetService {
 
     @POST("/generatepid")
     @FormUrlEncoded
-    Call<Integer> generatePID(@Field("name")String name);
-
+    Call<Integer> generatePID(@Field("name") String name);
 
 
     @POST("/judgeandrecord")

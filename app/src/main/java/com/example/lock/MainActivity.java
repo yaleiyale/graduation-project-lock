@@ -125,13 +125,13 @@ public class MainActivity extends AppCompatActivity {
 
         netService = NetService.create();
 
-        bt_register = findViewById(R.id.connectButton);//设备初始化注册按钮
+        bt_register = findViewById(R.id.connectButton);
         bt_register.setOnClickListener(l -> connect());
 
-        bt_change = findViewById(R.id.changeButton);//录入模式切换按钮
+        bt_change = findViewById(R.id.changeButton);
         bt_change.setOnClickListener(l -> changePattern());
 
-        bt_add = findViewById(R.id.addButton);//信息录入按钮
+        bt_add = findViewById(R.id.addButton);
         bt_add.setOnClickListener(l -> {
             try {
                 uploadPerson();
@@ -140,7 +140,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        result_judge = findViewById(R.id.text_result_judge);//识别结果文本提示
+        result_judge = findViewById(R.id.text_result_judge);
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) ==
                 PackageManager.PERMISSION_GRANTED) {
@@ -166,6 +166,7 @@ public class MainActivity extends AppCompatActivity {
                         Toast.makeText(this, "摄取成功", Toast.LENGTH_SHORT).show();
                         UploadDialog(clearFace);
                     }
+
                 }
             }
 
@@ -251,7 +252,7 @@ public class MainActivity extends AppCompatActivity {
     private void endUpload() {
         uploadPattern = false;
         bt_change.post(() -> bt_change.setImageResource(R.drawable.normal_icon));
-        result_judge.post(() -> result_judge.setText("不通过"));
+        result_judge.post(() -> result_judge.setText(""));
         Toast.makeText(this, "录入模式关闭", Toast.LENGTH_SHORT).show();
     }
 
@@ -320,6 +321,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startUploadDialog() {
+        result_judge.post(() -> result_judge.setText(""));
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         final AlertDialog dialog = builder.create();
         View dialogView = View.inflate(this, R.layout.dialog_startupload, null);
@@ -419,7 +421,7 @@ public class MainActivity extends AppCompatActivity {
 
     void bindPreview(@NonNull ProcessCameraProvider cameraProvider) {
         preview = new Preview.Builder().build();
-        CameraSelector cameraSelector = new CameraSelector.Builder().requireLensFacing(CameraSelector.LENS_FACING_BACK).build();
+        CameraSelector cameraSelector = new CameraSelector.Builder().requireLensFacing(CameraSelector.LENS_FACING_FRONT).build();
         PreviewView previewView = findViewById(R.id.previewView);
         preview.setSurfaceProvider(previewView.getSurfaceProvider());
         imageAnalysis =
@@ -450,7 +452,7 @@ public class MainActivity extends AppCompatActivity {
                             coverView.irisAccepted();
                         }
                         if (coverView.allAccepted()) {
-                            if (!working&&!uploadPattern) {
+                            if (!working && !uploadPattern) {
                                 try {
                                     MyUtils.saveBitmap(bitmap, -2);
                                 } catch (IOException e) {
