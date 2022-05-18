@@ -165,6 +165,8 @@ public class MainActivity extends AppCompatActivity {
                     if (MyUtils.evaluateClarity(clearFace)) {
                         Toast.makeText(this, "摄取成功", Toast.LENGTH_SHORT).show();
                         UploadDialog(clearFace);
+                    }else{
+                        Toast.makeText(this, "图像不够清晰，请重新拍摄", Toast.LENGTH_SHORT).show();
                     }
 
                 }
