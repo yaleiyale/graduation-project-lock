@@ -7,4 +7,6 @@
     <string name="str_cancel">取消</string>
     <string name="str_confirm">确认</string>
     <string name="str_startUpload">登入管理员身份以启用录入</string>
+    <string name="str_image">照片</string>
+    <string name="str_upload_dialog">确认照片并输入姓名</string>
 </resources>
