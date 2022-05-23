@@ -15,9 +15,6 @@ import android.view.View;
 public class CoverView extends View {
     private final Paint face_paint;
     private final Paint eye_paint;
-    private boolean isIris = false;
-    private boolean isFace = false;
-    private boolean find = false;
     float width;
     float height;
     float density;
@@ -33,6 +30,9 @@ public class CoverView extends View {
     Rect cut_right;
     Rect to_left;
     Rect to_right;
+    private boolean isIris = false;
+    private boolean isFace = false;
+    private boolean find = false;
 
     public CoverView(Context context) {
         super(context);

@@ -39,6 +39,7 @@ public class MyUtils {
 
     }
 
+
     /**
      * faceDetector needs bitmap_565, convert the image to bitmap
      */
@@ -72,6 +73,14 @@ public class MyUtils {
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix_rotate, true);
     }
 
+    public static void saveBitmap(Bitmap faceBitmap, String pid) throws IOException {
+        @SuppressLint("SdCardPath") String name = "/sdcard/DCIM/Camera/" + pid + ".jpg";
+        File file = new File(name);
+        FileOutputStream fos = new FileOutputStream(file);
+        faceBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+        fos.close();
+    }
+
     public static Bitmap flipBitmap(Bitmap bitmap) {
         Matrix matrix_flip = new Matrix();
         matrix_flip.postScale(-1, 1);
@@ -80,7 +89,7 @@ public class MyUtils {
 
     @SuppressLint("SdCardPath")
     public static boolean evaluateClarity(Bitmap clearFace) throws IOException {
-        saveBitmap(clearFace, -1);
+        saveBitmap(clearFace, "-1");
         Mat srcImage = imread("/sdcard/DCIM/Camera/-1.jpg");
         Mat dstImage = new Mat();
         cvtColor(srcImage, dstImage, COLOR_BGR2GRAY);
@@ -91,14 +100,8 @@ public class MyUtils {
         Mat stdDev = new Mat();
         meanStdDev(laplacianDstImage, new Mat(), stdDev);
         double value = stdDev.createIndexer().getDouble();
-        return value > 20.0;
+        return value > 10.0;
     }
 
-    public static void saveBitmap(Bitmap faceBitmap, int pid) throws IOException {
-        @SuppressLint("SdCardPath") String name = "/sdcard/DCIM/Camera/" + pid + ".jpg";
-        File file = new File(name);
-        FileOutputStream fos = new FileOutputStream(file);
-        faceBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
-        fos.close();
-    }
+
 }

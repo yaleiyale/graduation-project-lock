@@ -21,25 +21,7 @@
         android:orientation="horizontal"
         android:gravity="center">
 
-        <ImageButton
-            android:id="@+id/connectButton"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:layout_gravity="center_horizontal"
-            android:background="#00FFFFFF"
-            android:contentDescription="@string/add_inf"
-            android:scaleType="centerCrop"
-            app:srcCompat="@drawable/connect_icon" />
 
-        <ImageButton
-            android:id="@+id/addButton"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:layout_gravity="center_horizontal"
-            android:background="#00FFFFFF"
-            android:contentDescription="@string/add_inf"
-            android:scaleType="centerCrop"
-            app:srcCompat="@drawable/add_icon" />
 
         <ImageButton
             android:id="@+id/changeButton"

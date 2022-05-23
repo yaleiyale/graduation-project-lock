@@ -13,9 +13,16 @@ import retrofit2.http.Part;
 public interface NetService {
 
 
+    static NetService create() {
+        return new Retrofit.Builder()
+                .addConverterFactory(GsonConverterFactory.create())
+                .baseUrl("http://10.241.125.154:8080")
+                .build().create(NetService.class);
+    }
+
     @POST("/getdeviceid")
     @FormUrlEncoded
-    Call<Integer> initDevice(@Field("customName") String customName);
+    Call<Integer> initDevice(@Field("customName") String customName, @Field("ip") String ip);
 
     @POST("/getidbybitmap")
     @Multipart
@@ -29,20 +36,15 @@ public interface NetService {
     @FormUrlEncoded
     Call<Integer> generatePID(@Field("name") String name);
 
+    @POST("/finddevice")
+    @FormUrlEncoded
+    Call<Boolean> findDevice(@Field("did") int did, @Field("ip") String ip);
 
     @POST("/judgeandrecord")
     @FormUrlEncoded
     Call<Boolean> judgeAndRecord(@Field("pid") int pid, @Field("did") int did);
 
-
     @POST("/getuserlist")
     @FormUrlEncoded
     Call<Boolean> startUploadPattern(@Field("account") String account, @Field("password") String password);
-
-    static NetService create() {
-        return new Retrofit.Builder()
-                .addConverterFactory(GsonConverterFactory.create())
-                .baseUrl("http://10.241.125.154:8080")
-                .build().create(NetService.class);
-    }
 }

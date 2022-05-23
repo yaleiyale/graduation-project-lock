@@ -9,6 +9,10 @@ import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
 import android.media.FaceDetector;
 import android.media.Image;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -42,7 +46,13 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
+import java.util.Enumeration;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -56,24 +66,25 @@ import retrofit2.Response;
 
 
 public class MainActivity extends AppCompatActivity {
-    private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
+    private static final int REQUEST_CODE = 1;
     ImageAnalysis imageAnalysis;
     Preview preview;
     CoverView coverView;
     int passNum = 0;
-    private static final int REQUEST_CODE = 1;
     Bitmap bitmap;
-    private int did;
     NetService netService;
     String filename = "did";
     TextView result_judge;
     Boolean uploadPattern = false;
     ImageButton bt_change;
-    ImageButton bt_register;
-    ImageButton bt_add;
+    //    ImageButton bt_register;
     String uid = "1";
     String password = "1";
     boolean working = false;
+    TCP_Server server;
+    private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
+    private int did;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -81,6 +92,8 @@ public class MainActivity extends AppCompatActivity {
         setTheme(android.R.style.Theme_Light_NoTitleBar_Fullscreen);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        netService = NetService.create();
+        String ip = getIPAddress();
 
         File file = new File(getApplicationContext().getFilesDir(), filename);
         if (file.exists()) {
@@ -103,16 +116,35 @@ public class MainActivity extends AppCompatActivity {
             } finally {
                 String contents = stringBuilder.toString();
                 Log.i("InitSuccess", "重识id");
-                did = Integer.parseInt(contents);
                 try {
                     assert fis != null;
                     fis.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                Log.i("InitSuccess", "设备注册成功" + did);
-                Toast.makeText(this, "已注册！", Toast.LENGTH_SHORT).show();
+                did = Integer.parseInt(contents);
+                Call<Boolean> call = netService.findDevice(did, ip);
+                call.enqueue(new Callback<Boolean>() {
+                    @Override
+                    public void onResponse(@NonNull Call<Boolean> call, @NonNull Response<Boolean> response) {
+                        Boolean isfind = response.body();
+                        if (Boolean.TRUE.equals(isfind)) {
+                            Log.i("InitSuccess", "设备注册成功" + did);
+                            Toast.makeText(MainActivity.this, "已注册！", Toast.LENGTH_SHORT).show();
+                        } else {
+                            if (file.delete())
+                                connect();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Call<Boolean> call, @NonNull Throwable t) {
+
+                    }
+                });
             }
+        } else {
+            connect();
         }
 
 
@@ -123,25 +155,25 @@ public class MainActivity extends AppCompatActivity {
         View rootView = this.getWindow().getDecorView();
         addCover(rootView);
 
-        netService = NetService.create();
 
-        bt_register = findViewById(R.id.connectButton);
-        bt_register.setOnClickListener(l -> connect());
+//        bt_register = findViewById(R.id.connectButton);
+//        bt_register.setOnClickListener(l -> connect());
 
         bt_change = findViewById(R.id.changeButton);
         bt_change.setOnClickListener(l -> changePattern());
 
-        bt_add = findViewById(R.id.addButton);
-        bt_add.setOnClickListener(l -> {
-            try {
-                uploadPerson();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
 
         result_judge = findViewById(R.id.text_result_judge);
 
+
+        new Thread(() -> {
+            server = new TCP_Server();
+            try {
+                server.openDoor(result_judge);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }).start();
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) ==
                 PackageManager.PERMISSION_GRANTED) {
             initPreview();
@@ -155,50 +187,67 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("SdCardPath")
     private void uploadPerson() throws IOException {
         {
-            if (!uploadPattern) {
-                Toast.makeText(this, "未启动录入模式", Toast.LENGTH_SHORT).show();
-            } else {
-                if (!coverView.shoot()) {
-                    Toast.makeText(this, "摄取失败，请在识别成功后进行摄取", Toast.LENGTH_SHORT).show();
+            working = true;
+            runOnUiThread(() -> {
+                if (!uploadPattern) {
+                    Toast.makeText(MainActivity.this, "未启动录入模式", Toast.LENGTH_SHORT).show();
                 } else {
-                    Bitmap clearFace = bitmap;
-                    if (MyUtils.evaluateClarity(clearFace)) {
-                        Toast.makeText(this, "摄取成功", Toast.LENGTH_SHORT).show();
-                        UploadDialog(clearFace);
-                    }else{
-                        Toast.makeText(this, "图像不够清晰，请重新拍摄", Toast.LENGTH_SHORT).show();
+                    if (!coverView.shoot()) {
+                        Toast.makeText(MainActivity.this, "摄取失败，请在识别成功后进行摄取", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Bitmap clearFace = bitmap;
+                        boolean pass;
+                        try {
+                            pass = MyUtils.evaluateClarity(clearFace);
+                            if (pass) {
+                                // Toast.makeText(MainActivity.this, "摄取成功", Toast.LENGTH_SHORT).show();
+                                UploadDialog(clearFace);
+                            } else {
+                                result_judge.post(() -> result_judge.setText("图像不够清晰，请重新拍摄"));
+                                working = false;
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
-
                 }
-            }
+            });
+
 
         }
     }
 
     private void UploadDialog(Bitmap faceBitmap) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        final AlertDialog dialog = builder.create();
-        View dialogView = View.inflate(this, R.layout.upload, null);
-        dialog.setView(dialogView);
-        dialog.show();
+        runOnUiThread(() -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+            final AlertDialog dialog = builder.create();
+            View dialogView = View.inflate(MainActivity.this, R.layout.upload, null);
+            dialog.setView(dialogView);
+            dialog.show();
 
-        final EditText et_personName = dialogView.findViewById(R.id.et_person_name);
-        final ImageView iv_showFace = dialogView.findViewById(R.id.iv_image);
-        final Button btn_adjust = dialogView.findViewById(R.id.btn_adjust);
-        final Button btn_cancel = dialogView.findViewById(R.id.btn_cancel);
-        iv_showFace.post(() -> iv_showFace.setImageBitmap(faceBitmap));
-        btn_adjust.setOnClickListener(view -> {
-            String name = et_personName.getText().toString();
-            if (TextUtils.isEmpty(name)) {
-                Toast.makeText(this, "请输入个人姓名", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            upload(faceBitmap, name);
+            final EditText et_personName = dialogView.findViewById(R.id.et_person_name);
+            final ImageView iv_showFace = dialogView.findViewById(R.id.iv_image);
+            final Button btn_adjust = dialogView.findViewById(R.id.btn_adjust);
+            final Button btn_cancel = dialogView.findViewById(R.id.btn_cancel);
+            iv_showFace.post(() -> iv_showFace.setImageBitmap(faceBitmap));
+            btn_adjust.setOnClickListener(view -> {
+                String name = et_personName.getText().toString();
+                if (TextUtils.isEmpty(name)) {
+                    Toast.makeText(MainActivity.this, "请输入个人姓名", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                upload(faceBitmap, name);
+                Toast.makeText(MainActivity.this, "上传成功", Toast.LENGTH_SHORT).show();
+                working = false;
+                dialog.dismiss();
+            });
 
-            dialog.dismiss();
+            btn_cancel.setOnClickListener(view -> {
+                dialog.dismiss();
+                working = false;
+            });
         });
 
-        btn_cancel.setOnClickListener(view -> dialog.dismiss());
     }
 
     private void upload(Bitmap faceBitmap, String name) {
@@ -209,7 +258,7 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(@NonNull Call<Integer> call, @NonNull Response<Integer> response) {
                 int pid = response.body();
                 try {
-                    MyUtils.saveBitmap(faceBitmap, response.body());
+                    MyUtils.saveBitmap(faceBitmap, String.valueOf(pid));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -242,7 +291,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-
     private void changePattern() {
         if (!uploadPattern) {
             startUploadDialog();
@@ -255,6 +303,8 @@ public class MainActivity extends AppCompatActivity {
         uploadPattern = false;
         bt_change.post(() -> bt_change.setImageResource(R.drawable.normal_icon));
         result_judge.post(() -> result_judge.setText(""));
+        coverView.bm_left = null;
+        coverView.bm_right = null;
         Toast.makeText(this, "录入模式关闭", Toast.LENGTH_SHORT).show();
     }
 
@@ -295,10 +345,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
     private void connectDialog(File file) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        final AlertDialog dialog = builder.create();
+        final AlertDialog dialog = builder
+                .setCancelable(false)
+                .create();
         View dialogView = View.inflate(this, R.layout.dialog_set_customname, null);
         dialog.setView(dialogView);
         dialog.show();
@@ -319,7 +370,7 @@ public class MainActivity extends AppCompatActivity {
             dialog.dismiss();
         });
 
-        btn_cancel.setOnClickListener(view -> dialog.dismiss());
+        //btn_cancel.setOnClickListener(view -> dialog.dismiss());
     }
 
     private void startUploadDialog() {
@@ -382,7 +433,8 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         if (isCreated) {
-            Call<Integer> call = netService.initDevice(name);
+            String ip = getIPAddress();
+            Call<Integer> call = netService.initDevice(name, ip);
             call.enqueue(new Callback<Integer>() {
                 @Override
                 public void onResponse(@NonNull Call<Integer> call, @NonNull Response<Integer> response) {
@@ -454,22 +506,30 @@ public class MainActivity extends AppCompatActivity {
                             coverView.irisAccepted();
                         }
                         if (coverView.allAccepted()) {
+                            String uuid = UUID.randomUUID().toString();
                             if (!working && !uploadPattern) {
                                 try {
-                                    MyUtils.saveBitmap(bitmap, -2);
+                                    MyUtils.saveBitmap(bitmap, uuid);
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
-                                @SuppressLint("SdCardPath") File file = new File("/sdcard/DCIM/Camera/-2.jpg");
+                                @SuppressLint("SdCardPath") File file = new File("/sdcard/DCIM/Camera/" + uuid + ".jpg");
                                 RequestBody body = RequestBody.create(MediaType.parse("multipart/form-data"), file);
 
                                 MultipartBody multipartBody = new MultipartBody.Builder()
-                                        .addFormDataPart("file", "-2.jpg", body)
+                                        .addFormDataPart("file", uuid + ".jpg", body)
                                         .setType(MultipartBody.FORM)
                                         .build();
                                 Call<String> call = netService.FaceRecognition(multipartBody.part(0));
                                 working = true;
                                 act_net_faceRecognition(call);
+                            }
+                            if (!working && uploadPattern) {
+                                try {
+                                    uploadPerson();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
                             }
                         }
                     } else {
@@ -489,13 +549,11 @@ public class MainActivity extends AppCompatActivity {
         call.enqueue(new Callback<String>() {
             @Override
             public void onResponse(@NonNull Call<String> call, @NonNull Response<String> response) {
+                assert response.body() != null;
                 int pid = Integer.parseInt(response.body());
-                if (pid == 0)
-                    result_judge.post(() -> result_judge.setText("不通过"));
-                else {
-                    Call<Boolean> netCall = netService.judgeAndRecord(pid, did);
-                    act_net_judgeAndRecord(netCall);
-                }
+                Call<Boolean> netCall = netService.judgeAndRecord(pid, did);
+                act_net_judgeAndRecord(netCall);
+
             }
 
             @Override
@@ -532,6 +590,45 @@ public class MainActivity extends AppCompatActivity {
         ((FrameLayout) view).addView(coverView);
     }
 
+    String getIPAddress() {
+        Context context = MainActivity.this;
+        NetworkInfo info = ((ConnectivityManager) context
+                .getSystemService(Context.CONNECTIVITY_SERVICE)).getActiveNetworkInfo();
+        if (info != null && info.isConnected()) {
+            if (info.getType() == ConnectivityManager.TYPE_MOBILE) {//当前使用2G/3G/4G网络
+                try {
+                    //Enumeration<NetworkInterface> en=NetworkInterface.getNetworkInterfaces();
+                    for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements(); ) {
+                        NetworkInterface intf = en.nextElement();
+                        for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
+                            InetAddress inetAddress = enumIpAddr.nextElement();
+                            if (!inetAddress.isLoopbackAddress() && inetAddress instanceof Inet4Address) {
+                                return inetAddress.getHostAddress();
+                            }
+                        }
+                    }
+                } catch (SocketException e) {
+                    e.printStackTrace();
+                }
+            } else if (info.getType() == ConnectivityManager.TYPE_WIFI) {//当前使用无线网络
+                WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+                WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+                //调用方法将int转换为地址字符串
+                return intIP2StringIP(wifiInfo.getIpAddress());
+            }
+        } else {
+            Toast.makeText(MainActivity.this, "无网络", Toast.LENGTH_SHORT).show();
+        }
+        return null;
+    }
+
+    //将得到的int类型的IP转换为String类型
+    String intIP2StringIP(int ip) {
+        return (ip & 0xFF) + "." +
+                ((ip >> 8) & 0xFF) + "." +
+                ((ip >> 16) & 0xFF) + "." +
+                (ip >> 24 & 0xFF);
+    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {

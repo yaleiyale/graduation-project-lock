@@ -32,20 +32,10 @@
         android:paddingLeft="5dp"
         android:paddingRight="5dp">
 
-        <Button
-            android:id="@+id/btn_cancel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="10dp"
-            android:layout_weight="1"
-            android:background="#169ee5"
-            android:text="@string/str_cancel"
-            android:textColor="@android:color/white"
-            android:textSize="16sp" />
 
         <Button
             android:id="@+id/btn_adjust"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="#169ee5"
