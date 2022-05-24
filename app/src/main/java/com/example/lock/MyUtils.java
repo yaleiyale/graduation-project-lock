@@ -100,7 +100,7 @@ public class MyUtils {
         Mat stdDev = new Mat();
         meanStdDev(laplacianDstImage, new Mat(), stdDev);
         double value = stdDev.createIndexer().getDouble();
-        return value > 10.0;
+        return value > 15.0;
     }
 
 

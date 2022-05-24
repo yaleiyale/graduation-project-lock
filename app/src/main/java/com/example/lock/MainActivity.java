@@ -77,7 +77,6 @@ public class MainActivity extends AppCompatActivity {
     TextView result_judge;
     Boolean uploadPattern = false;
     ImageButton bt_change;
-    //    ImageButton bt_register;
     String uid = "1";
     String password = "1";
     boolean working = false;
@@ -357,7 +356,7 @@ public class MainActivity extends AppCompatActivity {
         final EditText et_customName = dialogView.findViewById(R.id.et_customName);
 
         final Button btn_adjust = dialogView.findViewById(R.id.btn_adjust);
-        final Button btn_cancel = dialogView.findViewById(R.id.btn_cancel);
+        //final Button btn_cancel = dialogView.findViewById(R.id.btn_cancel);
 
         btn_adjust.setOnClickListener(view -> {
             String name = et_customName.getText().toString();
@@ -595,9 +594,8 @@ public class MainActivity extends AppCompatActivity {
         NetworkInfo info = ((ConnectivityManager) context
                 .getSystemService(Context.CONNECTIVITY_SERVICE)).getActiveNetworkInfo();
         if (info != null && info.isConnected()) {
-            if (info.getType() == ConnectivityManager.TYPE_MOBILE) {//当前使用2G/3G/4G网络
+            if (info.getType() == ConnectivityManager.TYPE_MOBILE) {//2G/3G/4G
                 try {
-                    //Enumeration<NetworkInterface> en=NetworkInterface.getNetworkInterfaces();
                     for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements(); ) {
                         NetworkInterface intf = en.nextElement();
                         for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
@@ -610,10 +608,9 @@ public class MainActivity extends AppCompatActivity {
                 } catch (SocketException e) {
                     e.printStackTrace();
                 }
-            } else if (info.getType() == ConnectivityManager.TYPE_WIFI) {//当前使用无线网络
+            } else if (info.getType() == ConnectivityManager.TYPE_WIFI) {//wifi
                 WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
                 WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-                //调用方法将int转换为地址字符串
                 return intIP2StringIP(wifiInfo.getIpAddress());
             }
         } else {
@@ -622,7 +619,6 @@ public class MainActivity extends AppCompatActivity {
         return null;
     }
 
-    //将得到的int类型的IP转换为String类型
     String intIP2StringIP(int ip) {
         return (ip & 0xFF) + "." +
                 ((ip >> 8) & 0xFF) + "." +
