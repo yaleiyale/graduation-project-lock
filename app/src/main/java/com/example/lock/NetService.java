@@ -44,7 +44,7 @@ public interface NetService {
     @FormUrlEncoded
     Call<Boolean> judgeAndRecord(@Field("pid") int pid, @Field("did") int did);
 
-    @POST("/getuserlist")
+    @POST("/login")
     @FormUrlEncoded
     Call<Boolean> startUploadPattern(@Field("account") String account, @Field("password") String password);
 }
