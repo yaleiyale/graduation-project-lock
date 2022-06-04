@@ -102,6 +102,4 @@ public class MyUtils {
         double value = stdDev.createIndexer().getDouble();
         return value > 15.0;
     }
-
-
 }

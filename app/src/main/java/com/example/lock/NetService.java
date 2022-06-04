@@ -16,7 +16,7 @@ public interface NetService {
     static NetService create() {
         return new Retrofit.Builder()
                 .addConverterFactory(GsonConverterFactory.create())
-                .baseUrl("http://192.168.111.116:8080")
+                .baseUrl("http://192.168.137.1:8080")
                 .build().create(NetService.class);
     }
 
